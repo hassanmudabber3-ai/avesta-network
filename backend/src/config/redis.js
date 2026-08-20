@@ -1,9 +1,8 @@
 const { createClient } = require('redis');
-
-const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const config = require('./index');
 
 const redis = createClient({
-  url: redisUrl,
+  url: config.redis.url,
   socket: {
     reconnectStrategy(retries) {
       return Math.min(retries * 100, 3000);
@@ -35,6 +34,14 @@ async function connectRedis() {
   return redis;
 }
 
+async function checkRedisConnection() {
+  if (!redis.isOpen) {
+    await connectRedis();
+  }
+
+  return redis.isReady;
+}
+
 async function closeRedis() {
   if (redis.isOpen) {
     await redis.quit();
@@ -44,5 +51,6 @@ async function closeRedis() {
 module.exports = {
   redis,
   connectRedis,
+  checkRedisConnection,
   closeRedis
 };

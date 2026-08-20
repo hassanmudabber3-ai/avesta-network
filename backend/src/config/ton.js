@@ -1,25 +1,20 @@
-const TON_NETWORK = process.env.TON_NETWORK || 'testnet';
+const config = require('./index');
 
-const TON_ENDPOINT =
-  process.env.TON_ENDPOINT ||
-  (TON_NETWORK === 'mainnet'
-    ? 'https://toncenter.com/api/v2/jsonRPC'
-    : 'https://testnet.toncenter.com/api/v2/jsonRPC');
-
-const TON_API_KEY = process.env.TON_API_KEY || '';
-
-const TON_CONFIG = {
-  network: TON_NETWORK,
-  endpoint: TON_ENDPOINT,
-  apiKey: TON_API_KEY,
-  jettonMasterAddress: process.env.AVC_JETTON_MASTER_ADDRESS || '',
-  treasuryAddress: process.env.AVC_TREASURY_ADDRESS || ''
-};
+const TON_CONFIG = Object.freeze({
+  network: config.ton.network,
+  endpoint: config.ton.endpoint,
+  apiKey: config.ton.apiKey,
+  jettonMasterAddress: config.ton.jettonMasterAddress,
+  treasuryAddress: config.ton.treasuryAddress
+});
 
 function getTonConfig() {
   return {
-    ...TON_CONFIG,
-    apiKey: TON_CONFIG.apiKey ? '[configured]' : '[not configured]'
+    network: TON_CONFIG.network,
+    endpoint: TON_CONFIG.endpoint,
+    apiKeyConfigured: Boolean(TON_CONFIG.apiKey),
+    jettonMasterConfigured: Boolean(TON_CONFIG.jettonMasterAddress),
+    treasuryConfigured: Boolean(TON_CONFIG.treasuryAddress)
   };
 }
 
@@ -29,6 +24,7 @@ function isMainnet() {
 
 function isTonConfigured() {
   return Boolean(
+    TON_CONFIG.endpoint &&
     TON_CONFIG.jettonMasterAddress &&
     TON_CONFIG.treasuryAddress
   );

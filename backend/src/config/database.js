@@ -1,12 +1,13 @@
 const { Pool } = require('pg');
+const config = require('./index');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: Number(process.env.DB_POOL_MAX || 20),
-  idleTimeoutMillis: Number(process.env.DB_IDLE_TIMEOUT || 30000),
-  connectionTimeoutMillis: Number(process.env.DB_CONNECTION_TIMEOUT || 10000),
+  connectionString: config.database.url,
+  max: config.database.poolMax,
+  idleTimeoutMillis: config.database.idleTimeout,
+  connectionTimeoutMillis: config.database.connectionTimeout,
   ssl:
-    process.env.NODE_ENV === 'production'
+    config.env === 'production'
       ? { rejectUnauthorized: false }
       : false
 });
