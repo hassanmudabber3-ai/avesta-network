@@ -1,69 +1,28 @@
-function audit(action, options = {}) {
-  const {
-    category = 'system',
-    includeBody = false
-  } = options;
+const { createAuditLog } = require('../services/audit.service');
 
-  return (req, res, next) => {
-    const startedAt = Date.now();
+function auditMiddleware(req, res, next) {
+  res.on('finish', () => {
+    const userId = req.user?.id || null;
 
-    res.on('finish', () => {
-      const userId = req.user?.id || null;
-
-      const auditRecord = {
-        action,
-        category,
-        userId,
-        method: req.method,
-        path: req.originalUrl,
-        statusCode: res.statusCode,
-        durationMs: Date.now() - startedAt,
-        ip:
-          req.headers['x-forwarded-for'] ||
-          req.socket.remoteAddress ||
-          null,
-        userAgent: req.headers['user-agent'] || null,
-        timestamp: new Date().toISOString()
-      };
-
-      if (includeBody) {
-        auditRecord.body = sanitizeBody(req.body);
-      }
-
-      console.log('[AUDIT]', JSON.stringify(auditRecord));
+    createAuditLog({
+      userId,
+      action: `${req.method} ${req.path}`,
+      category: req.path.startsWith('/api/auth')
+        ? 'authentication'
+        : 'api',
+      method: req.method,
+      path: req.originalUrl,
+      statusCode: res.statusCode,
+      ipAddress: req.ip || null,
+      userAgent: req.get('user-agent') || null
+    }).catch((error) => {
+      console.error('Audit log error:', error.message);
     });
+  });
 
-    next();
-  };
-}
-
-function sanitizeBody(body = {}) {
-  if (!body || typeof body !== 'object') {
-    return {};
-  }
-
-  const sensitiveFields = [
-    'password',
-    'token',
-    'accessToken',
-    'refreshToken',
-    'jwt',
-    'secret',
-    'apiKey',
-    'privateKey'
-  ];
-
-  const sanitized = { ...body };
-
-  for (const field of sensitiveFields) {
-    if (field in sanitized) {
-      sanitized[field] = '[REDACTED]';
-    }
-  }
-
-  return sanitized;
+  next();
 }
 
 module.exports = {
-  audit
+  auditMiddleware
 };

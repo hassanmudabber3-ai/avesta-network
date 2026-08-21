@@ -4,6 +4,8 @@ const helmet = require('helmet');
 
 const config = require('./config');
 const userRoutes = require('./routes/user.routes');
+const authRoutes = require('./routes/auth.routes');
+const { auditMiddleware } = require('./middleware/audit.middleware');
 const {
   notFoundHandler,
   errorHandler
@@ -17,6 +19,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(auditMiddleware);
 
 app.get('/health', (req, res) => {
   res.json({
@@ -26,6 +29,7 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
 app.use(notFoundHandler);
