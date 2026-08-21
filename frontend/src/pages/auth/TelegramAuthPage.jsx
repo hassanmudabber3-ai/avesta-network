@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-const API_URL = 'https://alternatives-intensity-cadillac-productions.trycloudflare.com';
+const API_URL = 'https://holly-consensus-show-promo.trycloudflare.com';
 
-export default function TelegramAuthPage() {
+export default function TelegramAuthPage({ onLoginSuccess }) {
   const [status, setStatus] = useState('در حال اتصال به Telegram...');
 
   useEffect(() => {
@@ -61,6 +61,10 @@ export default function TelegramAuthPage() {
         );
 
         setStatus('ورود با موفقیت انجام شد.');
+
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
 
         console.log(
           'AVC Telegram Login:',

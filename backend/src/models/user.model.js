@@ -67,7 +67,8 @@ async function updateUser(id, fields = {}) {
     language: 'language',
     role: 'role',
     status: 'status',
-    isVerified: 'is_verified'
+    isVerified: 'is_verified',
+    referralCode: 'referral_code'
   };
 
   const updates = [];
