@@ -26,4 +26,11 @@ router.post(
   miningController.watchAd
 );
 
+
+router.post(
+  '/claim',
+  authenticate,
+  miningController.claimMining
+);
+
 module.exports = router;

@@ -177,8 +177,69 @@ const watchAd = asyncHandler(async (req, res) => {
   });
 });
 
+
+const claimMining = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  const result = await miningModel.claimMining(userId);
+
+  if (!result.success) {
+    const messages = {
+      NO_ACTIVE_MINING:
+        'Mining فعال برای Claim وجود ندارد',
+
+      MINING_NOT_FINISHED:
+        'هنوز زمان Mining به پایان نرسیده است',
+
+      REQUIRED_ADS_NOT_COMPLETED:
+        'تبلیغ اجباری Mining تکمیل نشده است',
+
+      MINING_CONFIG_NOT_FOUND:
+        'تنظیمات Mining پیدا نشد',
+
+      INVALID_REWARD:
+        'مقدار پاداش Mining نامعتبر است',
+
+      ALREADY_CLAIMED:
+        'این Mining قبلاً Claim شده است'
+    };
+
+    const status =
+      result.code === 'MINING_CONFIG_NOT_FOUND' ? 500 :
+      result.code === 'NO_ACTIVE_MINING' ? 400 :
+      result.code === 'MINING_NOT_FINISHED' ? 400 :
+      result.code === 'REQUIRED_ADS_NOT_COMPLETED' ? 400 :
+      result.code === 'ALREADY_CLAIMED' ? 400 :
+      400;
+
+    return res.status(status).json({
+      success: false,
+      code: result.code,
+      message: messages[result.code] || 'Mining claim failed',
+      ...(result.endsAt ? { endsAt: result.endsAt } : {}),
+      ...(result.requiredAds !== undefined ? {
+        requiredAds: result.requiredAds,
+        requiredAdsNeeded: result.requiredAdsNeeded
+      } : {})
+    });
+  }
+
+  return res.json({
+    success: true,
+    message: 'Mining reward claimed successfully',
+    data: {
+      sessionId: result.sessionId,
+      baseRate: result.baseRate,
+      adBoostPercent: result.adBoostPercent,
+      reward: result.reward,
+      token: 'AVC'
+    }
+  });
+});
+
 module.exports = {
   getStatus,
   startMining,
-  watchAd
+  watchAd,
+  claimMining
 };
